@@ -29,7 +29,10 @@ h1{font-size:20px;font-weight:500;margin:0 0 2px}
 .sub{font-size:14px;color:var(--text-secondary);margin:0 0 16px}
 .lbl{font-size:13px;color:var(--text-secondary);margin:0 0 6px}
 button,select{font:inherit;color:var(--text-primary);background:transparent;border:1px solid var(--border-strong);border-radius:8px;cursor:pointer}
-select{width:100%;padding:10px 12px;background:var(--surface-1);margin:0 0 14px}
+#scales{margin:0 0 14px}
+.grp{font-size:12px;color:var(--text-muted);margin:8px 0 4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{padding:8px 12px;font-size:14px;line-height:1.2}
 button:active{transform:scale(.98)}
 button:focus-visible,select:focus-visible{outline:2px solid var(--fill-accent);outline-offset:2px}
 #keys{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin:0 0 14px}
@@ -51,7 +54,7 @@ svg{display:block;width:100%;height:auto}
 <h1>CAGED · scale</h1>
 <p class="sub">Scegli scala e tonalità, poi impara le cinque forme.</p>
 <p class="lbl">Scala</p>
-<select id="scale" aria-label="Scala"></select>
+<div id="scales"></div>
 <p class="lbl">Tonalità</p>
 <div id="keys"></div>
 <p class="lbl">Forma, in ordine lungo il manico (tasti)</p>
@@ -149,7 +152,7 @@ $('shapes').innerHTML=wins.map(function(w){return '<button data-s="'+w.n+'" styl
 document.querySelectorAll('#shapes button').forEach(function(b){sty(b,b.dataset.s===st.shape);});
 document.querySelectorAll('#keys button').forEach(function(b){sty(b,+b.dataset.k===st.key);});
 document.querySelectorAll('#mode button').forEach(function(b){sty(b,b.dataset.m===st.mode);});
-$('scale').value=String(st.scale);
+document.querySelectorAll('#scales button').forEach(function(b){sty(b,+b.dataset.i===st.scale);});
 var cur=wins.filter(function(w){return w.n===st.shape;})[0];
 var L=cur.lo,map=scaleMap(st.scale,t),p=[],roots=[];
 for(var i=0;i<=5;i++){
@@ -192,14 +195,14 @@ var labels=sc.iv.map(function(i){return map[(t+i)%12].label;}).join(' ');
 $('notes').textContent='Note: '+names+' · Gradi: '+labels+(anchor!==t?' · Forme prese da '+NAMES12[anchor]+' maggiore':'');
 save();
 }
-var groups={};
-$('scale').innerHTML=SCALES.map(function(s,i){return {s:s,i:i};}).reduce(function(acc,o){
-if(!groups[o.s.grp]){groups[o.s.grp]=true;acc.push('<optgroup label="'+o.s.grp+'">');}
-acc.push('<option value="'+o.i+'">'+o.s.name.charAt(0).toUpperCase()+o.s.name.slice(1)+'</option>');
-return acc;
-},[]).join('');
+var gh='',lastGrp='';
+SCALES.forEach(function(s,i){
+if(s.grp!==lastGrp){if(lastGrp)gh+='</div>';gh+='<p class="grp">'+s.grp+'</p><div class="chips">';lastGrp=s.grp;}
+gh+='<button data-i="'+i+'">'+s.name.charAt(0).toUpperCase()+s.name.slice(1)+'</button>';
+});
+$('scales').innerHTML=gh+'</div>';
 $('keys').innerHTML=NAMES12.map(function(k,i){return '<button data-k="'+i+'" style="padding:6px 0;line-height:1.3;min-width:0;"><span style="display:block;font-size:15px;font-weight:500;">'+k+'</span><span style="display:block;font-size:11px;color:var(--text-secondary);">'+IT12[i]+'</span></button>';}).join('');
-$('scale').addEventListener('change',function(){st.scale=+$('scale').value;render();});
+$('scales').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;st.scale=+b.dataset.i;render();});
 $('keys').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;st.key=+b.dataset.k;render();});
 $('shapes').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;st.shape=b.dataset.s;render();});
 $('mode').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;st.mode=b.dataset.m;render();});
